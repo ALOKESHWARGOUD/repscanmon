@@ -21,11 +21,20 @@ _WINDOW_SECONDS = 900  # 15 minutes
 class TwitterCollector(BaseCollector):
     def __init__(self):
         super().__init__()
-        self.client = tweepy.Client(
-            bearer_token=settings.TWITTER_BEARER_TOKEN,
-            wait_on_rate_limit=False,
-        )
+        self._bearer_tokens = settings.get_twitter_bearer_tokens()
+        self._current_token_index = 0
         self.redis_sync = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        self._init_twitter_client()
+
+    def _init_twitter_client(self):
+        """Create a Tweepy client using the current bearer token."""
+        if self._bearer_tokens:
+            self.client = tweepy.Client(
+                bearer_token=self._bearer_tokens[self._current_token_index],
+                wait_on_rate_limit=False,
+            )
+        else:
+            self.client = None
 
     def get_platform_name(self) -> str:
         return "twitter"
@@ -35,9 +44,9 @@ class TwitterCollector(BaseCollector):
     # ------------------------------------------------------------------
 
     def _rate_limit_key(self) -> str:
-        """Redis key bucketed to the current 15-minute window."""
+        """Redis key bucketed to the current 15-minute window for the active token."""
         window = int(time.time()) // _WINDOW_SECONDS
-        return f"twitter:requests:{window}"
+        return f"twitter:requests:{window}:{self._current_token_index}"
 
     def _get_requests_used(self) -> int:
         return int(self.redis_sync.get(self._rate_limit_key()) or 0)
@@ -50,17 +59,40 @@ class TwitterCollector(BaseCollector):
     def _is_rate_limit_available(self) -> bool:
         return self._get_requests_used() < _RATE_LIMIT_REQUESTS
 
+    def _rotate_bearer_token(self) -> bool:
+        """Try to switch to the next bearer token that still has rate-limit headroom.
+
+        Returns True if a new token was selected, False if all tokens are exhausted.
+        """
+        original_index = self._current_token_index
+        for i in range(1, len(self._bearer_tokens)):
+            candidate = (original_index + i) % len(self._bearer_tokens)
+            # Temporarily set the index so _rate_limit_key() uses the right token
+            self._current_token_index = candidate
+            if self._is_rate_limit_available():
+                logger.info(f"Twitter: rotated to bearer token index {candidate}")
+                self._init_twitter_client()
+                return True
+        # Restore original index — all tokens are exhausted
+        self._current_token_index = original_index
+        logger.error("Twitter: all bearer tokens have hit their rate limit")
+        return False
+
     # ------------------------------------------------------------------
     # Exponential backoff wrapper
     # ------------------------------------------------------------------
 
     def _search_with_backoff(self, **kwargs):
-        """Call search_recent_tweets with up to 3 retries on TooManyRequests."""
+        """Call search_recent_tweets, rotating to the next token on TooManyRequests."""
         wait_times = [60, 120, 240]
         for attempt, wait in enumerate(wait_times, start=1):
             try:
                 return self.client.search_recent_tweets(**kwargs)
             except tweepy.errors.TooManyRequests:
+                # Try rotating to another token before falling back to timed waits
+                if self._rotate_bearer_token():
+                    logger.info("Twitter: retrying with rotated bearer token")
+                    continue
                 if attempt == len(wait_times):
                     logger.error("Twitter rate limit hit after all retries; giving up")
                     raise
@@ -75,16 +107,17 @@ class TwitterCollector(BaseCollector):
     # ------------------------------------------------------------------
 
     def collect(self, keyword: str, since: datetime) -> list[CollectedPost]:
-        if not settings.TWITTER_BEARER_TOKEN:
+        if not self._bearer_tokens:
             logger.warning("Twitter bearer token not configured, skipping Twitter collection")
             return []
 
         if not self._is_rate_limit_available():
             logger.warning(
-                f"Twitter rate limit window exhausted ({self._get_requests_used()} requests used), "
-                "skipping collection"
+                f"Twitter rate limit window exhausted for token index {self._current_token_index} "
+                f"({self._get_requests_used()} requests used); attempting token rotation"
             )
-            return []
+            if not self._rotate_bearer_token():
+                return []
 
         posts: list[CollectedPost] = []
 

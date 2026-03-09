@@ -176,6 +176,7 @@ export default function Dashboard() {
     try {
       await createKeyword.mutateAsync(trimmed);
       setNewKeyword("");
+      router.push(`/keyword/${encodeURIComponent(trimmed)}`);
     } catch {
       setAddError("Failed to add keyword. Check API connection.");
     }
