@@ -55,7 +55,9 @@ class InstagramCollector(BaseCollector):
                 if self._is_seen(media_id):
                     continue
                 posted_at = media.taken_at
-                if isinstance(posted_at, datetime) and posted_at.tzinfo is not None:
+                if not isinstance(posted_at, datetime):
+                    continue
+                if posted_at.tzinfo is not None:
                     posted_at = posted_at.replace(tzinfo=None)
                 if posted_at < since.replace(tzinfo=None):
                     continue

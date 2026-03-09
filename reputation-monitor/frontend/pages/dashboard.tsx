@@ -111,12 +111,6 @@ const PLATFORM_CONFIG: Record<string, { icon: string; color: string; label: stri
   youtube: { icon: "▶️", color: "text-red-400", label: "YouTube" },
 };
 
-const PLATFORM_ICONS: Record<string, string> = {
-  twitter: "𝕏",
-  instagram: "📸",
-  youtube: "▶️",
-};
-
 function PlatformBadge({ platform }: { platform: string }) {
   const cfg = PLATFORM_CONFIG[platform?.toLowerCase()] ?? { icon: "🌐", color: "text-slate-400", label: platform };
   return (
@@ -320,13 +314,13 @@ export default function Dashboard() {
                           {/* Platforms */}
                           <td className="px-4 py-3">
                             <div className="flex gap-1.5">
-                              {Object.entries(PLATFORM_ICONS).map(([p, icon]) => (
+                              {Object.entries(PLATFORM_CONFIG).map(([p, cfg]) => (
                                 <span
                                   key={p}
-                                  title={p}
+                                  title={cfg.label}
                                   className="text-sm opacity-70 hover:opacity-100 transition-opacity"
                                 >
-                                  {icon}
+                                  {cfg.icon}
                                 </span>
                               ))}
                             </div>
