@@ -19,11 +19,33 @@ class Settings(BaseSettings):
 
     # API Keys
     YOUTUBE_API_KEY: str = ""
+    # Comma-separated list of additional YouTube API keys (rotated when quota is exceeded)
+    YOUTUBE_API_KEYS: str = ""
     REDDIT_CLIENT_ID: str = ""
     REDDIT_CLIENT_SECRET: str = ""
     REDDIT_USER_AGENT: str = "ReputationMonitor/1.0"
     TWITTER_BEARER_TOKEN: str = ""
+    # Comma-separated list of additional Twitter bearer tokens (rotated when rate limit is hit)
+    TWITTER_BEARER_TOKENS: str = ""
     NEWSDATA_API_KEY: str = ""
+
+    def get_youtube_api_keys(self) -> list[str]:
+        """Return deduplicated list of all configured YouTube API keys."""
+        keys: list[str] = []
+        if self.YOUTUBE_API_KEYS:
+            keys.extend([k.strip() for k in self.YOUTUBE_API_KEYS.split(",") if k.strip()])
+        if self.YOUTUBE_API_KEY and self.YOUTUBE_API_KEY not in keys:
+            keys.append(self.YOUTUBE_API_KEY)
+        return keys
+
+    def get_twitter_bearer_tokens(self) -> list[str]:
+        """Return deduplicated list of all configured Twitter bearer tokens."""
+        tokens: list[str] = []
+        if self.TWITTER_BEARER_TOKENS:
+            tokens.extend([t.strip() for t in self.TWITTER_BEARER_TOKENS.split(",") if t.strip()])
+        if self.TWITTER_BEARER_TOKEN and self.TWITTER_BEARER_TOKEN not in tokens:
+            tokens.append(self.TWITTER_BEARER_TOKEN)
+        return tokens
 
     # SMTP
     SMTP_HOST: str = "smtp.gmail.com"
