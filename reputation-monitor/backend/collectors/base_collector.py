@@ -8,7 +8,7 @@ from core.config import settings
 
 @dataclass
 class CollectedPost:
-    platform: str           # 'youtube' | 'reddit' | 'twitter' | 'news'
+    platform: str  # 'youtube' | 'twitter' | 'instagram'
     post_id: str
     author_id: str
     author_name: str

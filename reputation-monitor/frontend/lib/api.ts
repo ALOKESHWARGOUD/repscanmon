@@ -52,6 +52,10 @@ api.interceptors.response.use(
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+// Supported platforms for filtering
+export const SUPPORTED_PLATFORMS = ["twitter", "instagram", "youtube"] as const;
+export type Platform = typeof SUPPORTED_PLATFORMS[number];
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
