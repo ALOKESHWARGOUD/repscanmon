@@ -14,7 +14,6 @@ A production-grade reputation monitoring and coordinated attack detection platfo
 - [API Costs & Budget](#api-costs--budget)
 - [Security](#security)
 - [Phase 2 Scaling](#phase-2-scaling)
-- [Limitations](#limitations)
 
 ## Prerequisites
 
@@ -29,7 +28,7 @@ A production-grade reputation monitoring and coordinated attack detection platfo
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Collectors                               │
-│  YouTube │ Reddit │ Twitter/X │ NewsData.io                     │
+│  Instagram │ Twitter/X │ YouTube                                │
 └────────────────────────┬────────────────────────────────────────┘
                          │
                          ▼
@@ -53,7 +52,7 @@ A production-grade reputation monitoring and coordinated attack detection platfo
 ```
 
 **Components:**
-- **Collectors**: YouTube Data API v3, Reddit API (PRAW), Twitter/X Search API v2, NewsData.io
+- **Collectors**: Instagram (instagrapi), Twitter/X Search API v2, YouTube Data API v3
 - **Celery Workers**: Async task pipeline across four queues
 - **ML Pipeline**: Sentiment analysis, attack detection, coordinated campaign identification
 - **FastAPI**: REST API + WebSocket server
@@ -167,10 +166,11 @@ Full OpenAPI docs available at: http://localhost:8000/docs
 | Platform | Plan | Cost | Limits |
 |----------|------|------|--------|
 | YouTube Data API v3 | Free | $0/month | 10,000 quota units/day |
-| Reddit API | Free | $0/month | 60 req/min |
 | Twitter/X Search API | Basic | ~$100/month | 10,000 tweets/month, last 7 days |
-| NewsData.io | Free tier | $0/month | 200 req/day |
+| Instagram (instagrapi) | Free* | $0/month | Unofficial; use a dedicated account |
 | **Total MVP** | | **~$100/month** | ~10,000 posts/day |
+
+*Instagram collection uses the unofficial `instagrapi` library. Provide a dedicated/burner Instagram account.
 
 ## Security
 
@@ -190,17 +190,5 @@ To scale to 10x+ volume (1M+ posts/day):
 - **ML model fine-tuning** with labeled attack/non-attack data
 - **Redis Cluster** for horizontal cache scaling
 - **Kubernetes + HPA** for auto-scaling workers based on queue depth
-- **Add Instagram Business API** (owned accounts only — see Limitations)
 - **Add TikTok Research API** for academic/business research access
 
-## Limitations
-
-### Instagram
-
-> ⚠️ **Instagram data collection is NOT supported.**
-
-Only owned Instagram accounts can be monitored via the Instagram Graph API. Third-party public monitoring of Instagram posts violates Instagram's Terms of Service. There is no compliant way to monitor public Instagram posts for brand mentions without owning the account.
-
-**Workarounds:**
-- Monitor your own brand's Instagram account via Graph API
-- Use a paid social listening vendor (Brandwatch, Mention, Sprout Social) that has a data partnership agreement with Meta

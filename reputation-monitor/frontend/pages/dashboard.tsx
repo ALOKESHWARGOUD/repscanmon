@@ -103,14 +103,28 @@ function KeywordRiskCell({ keyword }: { keyword: string }) {
   );
 }
 
-// ── Platform icons ─────────────────────────────────────────────────────────────
+// ── Platform config ─────────────────────────────────────────────────────────────
+
+const PLATFORM_CONFIG: Record<string, { icon: string; color: string; label: string }> = {
+  twitter: { icon: "𝕏", color: "text-sky-400", label: "Twitter (X)" },
+  instagram: { icon: "📸", color: "text-pink-400", label: "Instagram" },
+  youtube: { icon: "▶️", color: "text-red-400", label: "YouTube" },
+};
 
 const PLATFORM_ICONS: Record<string, string> = {
   twitter: "𝕏",
-  reddit: "🔴",
-  youtube: "🎬",
-  news: "📰",
+  instagram: "📸",
+  youtube: "▶️",
 };
+
+function PlatformBadge({ platform }: { platform: string }) {
+  const cfg = PLATFORM_CONFIG[platform?.toLowerCase()] ?? { icon: "🌐", color: "text-slate-400", label: platform };
+  return (
+    <span className={`text-xs font-semibold ${cfg.color}`}>
+      {cfg.icon} {cfg.label}
+    </span>
+  );
+}
 
 // ── Dashboard stat aggregator ──────────────────────────────────────────────────
 

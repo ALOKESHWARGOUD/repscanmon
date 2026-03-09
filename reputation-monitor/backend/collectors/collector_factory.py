@@ -1,10 +1,11 @@
 from collectors.youtube_collector import YouTubeCollector
-from collectors.reddit_collector import RedditCollector
 from collectors.twitter_collector import TwitterCollector
-from collectors.news_collector import NewsCollector
+from collectors.instagram_collector import InstagramCollector
 from collectors.base_collector import BaseCollector
 
 _collectors: dict[str, BaseCollector] = {}
+
+SUPPORTED_PLATFORMS = ["youtube", "twitter", "instagram"]
 
 
 def get_collector(platform: str) -> BaseCollector:
@@ -12,16 +13,14 @@ def get_collector(platform: str) -> BaseCollector:
     if platform not in _collectors:
         if platform == "youtube":
             _collectors[platform] = YouTubeCollector()
-        elif platform == "reddit":
-            _collectors[platform] = RedditCollector()
         elif platform == "twitter":
             _collectors[platform] = TwitterCollector()
-        elif platform == "news":
-            _collectors[platform] = NewsCollector()
+        elif platform == "instagram":
+            _collectors[platform] = InstagramCollector()
         else:
-            raise ValueError(f"Unknown platform: {platform}")
+            raise ValueError(f"Unknown platform: {platform}. Supported: {SUPPORTED_PLATFORMS}")
     return _collectors[platform]
 
 
 def get_all_collectors() -> list[BaseCollector]:
-    return [get_collector(p) for p in ["youtube", "reddit", "twitter", "news"]]
+    return [get_collector(p) for p in SUPPORTED_PLATFORMS]

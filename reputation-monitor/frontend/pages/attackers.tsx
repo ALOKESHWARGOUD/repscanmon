@@ -8,9 +8,8 @@ import { formatDistanceToNow, parseISO } from "date-fns";
 
 const PLATFORM_ICONS: Record<string, string> = {
   twitter: "𝕏",
-  reddit: "🔴",
-  youtube: "🎬",
-  news: "📰",
+  instagram: "📸",
+  youtube: "▶️",
 };
 
 function platformIcon(p: string): string {
@@ -257,9 +256,8 @@ export default function Attackers() {
             >
               <option value="all">All Platforms</option>
               <option value="twitter">𝕏 Twitter</option>
-              <option value="reddit">🔴 Reddit</option>
-              <option value="youtube">🎬 YouTube</option>
-              <option value="news">📰 News</option>
+              <option value="instagram">📸 Instagram</option>
+              <option value="youtube">▶️ YouTube</option>
             </select>
 
             {/* Risk filter */}

@@ -21,13 +21,13 @@ class Settings(BaseSettings):
     YOUTUBE_API_KEY: str = ""
     # Comma-separated list of additional YouTube API keys (rotated when quota is exceeded)
     YOUTUBE_API_KEYS: str = ""
-    REDDIT_CLIENT_ID: str = ""
-    REDDIT_CLIENT_SECRET: str = ""
-    REDDIT_USER_AGENT: str = "ReputationMonitor/1.0"
     TWITTER_BEARER_TOKEN: str = ""
     # Comma-separated list of additional Twitter bearer tokens (rotated when rate limit is hit)
     TWITTER_BEARER_TOKENS: str = ""
-    NEWSDATA_API_KEY: str = ""
+
+    # Instagram credentials
+    INSTAGRAM_USERNAME: str = ""
+    INSTAGRAM_PASSWORD: str = ""
 
     def get_youtube_api_keys(self) -> list[str]:
         """Return deduplicated list of all configured YouTube API keys."""
