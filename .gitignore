@@ -1,0 +1,12 @@
+reputation-monitor/frontend/.next/
+reputation-monitor/frontend/node_modules/
+reputation-monitor/frontend/tsconfig.tsbuildinfo
+reputation-monitor/frontend/package-lock.json
+__pycache__/
+*.py[cod]
+*.pyc
+.env
+*.env
+.venv/
+venv/
+.DS_Store
