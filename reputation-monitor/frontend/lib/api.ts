@@ -2,6 +2,8 @@ import axios, { AxiosInstance } from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+export const DEFAULT_USER_ID = "dashboard-user";
+
 const api: AxiosInstance = axios.create({
   baseURL: `${API_BASE}/api/v1`,
   headers: { "Content-Type": "application/json" },
@@ -19,13 +21,28 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handle 401
+// Response interceptor: handle 401 by re-acquiring a token
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("auth_token");
+  async (error) => {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
+      try {
+        const res = await axios.post<{ access_token: string }>(
+          `${API_BASE}/api/v1/auth/token`,
+          { user_id: DEFAULT_USER_ID }
+        );
+        localStorage.setItem("auth_token", res.data.access_token);
+        // Retry the original request with the new token
+        const retryConfig = {
+          ...error.config,
+          headers: {
+            ...(error.config.headers ?? {}),
+            Authorization: `Bearer ${res.data.access_token}`,
+          },
+        };
+        return axios(retryConfig);
+      } catch {
         window.location.href = "/";
       }
     }
